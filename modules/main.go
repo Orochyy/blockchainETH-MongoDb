@@ -14,6 +14,28 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
+func  GetInt(key string) int {
+	var m map[string]interface{}
+
+	value, ok := m[key]
+	if !ok {
+		return 0
+	}
+	if value == nil {
+		return 0
+	}
+	number, ok := value.(int)
+	if ok {
+		return number
+	}
+	real, ok := value.(float64)
+	if !ok {
+		return 0
+	}
+	return int(real)
+}
+
+
 func GetLatestBlock(client ethclient.Client) *models.Block {
 	// We add a recover function from panics to prevent our API from crashing due to an unexpected error
 	defer func() {
@@ -32,6 +54,45 @@ func GetLatestBlock(client ethclient.Client) *models.Block {
 	}
 
 	// Build the response to our model
+	_block := &models.Block{
+		BlockNumber:       block.Number().Int64(),
+		Timestamp:         block.Time(),
+		Difficulty:        block.Difficulty().Uint64(),
+		Hash:              block.Hash().String(),
+		TransactionsCount: len(block.Transactions()),
+		Transactions:      []models.Transaction{},
+	}
+
+	for _, tx := range block.Transactions() {
+		_block.Transactions = append(_block.Transactions, models.Transaction{
+			Hash:     tx.Hash().String(),
+			Value:    tx.Value().String(),
+			Gas:      tx.Gas(),
+			GasPrice: tx.GasPrice().Uint64(),
+			Nonce:    tx.Nonce(),
+			To:       tx.To().String(),
+		})
+	}
+
+	return _block
+}
+
+// GetBlockByNumber returns a block by a given number
+func  GetBlockByNumber(client ethclient.Client, number string) *models.Block {
+
+	defer func() {
+		if err := recover(); err != nil {
+			fmt.Println(err)
+		}
+	}()
+
+	blockNumber := big.NewInt(int64(GetInt(number)))
+	block, err := client.BlockByNumber(context.Background(), blockNumber)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	_block := &models.Block{
 		BlockNumber:       block.Number().Int64(),
 		Timestamp:         block.Time(),

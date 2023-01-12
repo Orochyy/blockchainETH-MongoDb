@@ -21,6 +21,7 @@ func (client ClientHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Get parameter from url request
 	vars := mux.Vars(r)
 	module := vars["module"]
+	id := vars["id"]
 
 	// Get the query parameters from url request
 	address := r.URL.Query().Get("address")
@@ -55,7 +56,11 @@ func (client ClientHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Code:    404,
 			Message: "Tx Not Found!",
 		})
-
+	//case "id": for get block by id
+	case "id":
+		_block := modules.GetBlockByNumber(*client.Client, id)
+		json.NewEncoder(w).Encode(_block)
+		
 	case "send-eth":
 		decoder := json.NewDecoder(r.Body)
 		var t models.TransferEthRequest

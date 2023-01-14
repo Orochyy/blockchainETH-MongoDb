@@ -1,4 +1,4 @@
-package models
+package domain
 
 // Block data structure
 type Block struct {
@@ -33,6 +33,15 @@ type HashResponse struct {
 	Hash string `json:"hash"`
 }
 
+type HashRequest struct {
+	Hash string `json:"hash"`
+}
+
+// BalanceRequest data structure
+type BalanceRequest struct {
+	Address string `json:"address"`
+}
+
 // BalanceResponse data structure
 type BalanceResponse struct {
 	Address string `json:"address"`
@@ -45,4 +54,30 @@ type BalanceResponse struct {
 type Error struct {
 	Code    uint64 `json:"code"`
 	Message string `json:"message"`
+}
+
+// BlockNumberRequest data structure
+type BlockNumberRequest struct {
+	BlockNumber int64 `json:"blockNumber"`
+}
+
+type BlockNumberRewardsRequest struct {
+	BlockNumber int `json:"blockNumber"`
+}
+
+type BlockNumberRewardsResponse struct {
+	BlockNumber int64  `json:"blockNumber"`
+	TimeStamp   uint64 `json:"timeStamp"`
+	BlockMiner  string `json:"blockMiner"`
+	BlockReward string `json:"blockReward"`
+}
+
+type TransactionRequest struct {
+	ContractAddress *string `json:"contractAddress"`
+	Address         *string `json:"address"`
+	StartBlock      *int    `json:"startBlock"`
+	EndBlock        *int    `json:"endBlock"`
+	Page            int     `json:"page"`
+	Offset          int     `json:"offset"`
+	Desc            bool    `json:"desc"`
 }

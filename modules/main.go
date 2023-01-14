@@ -1,7 +1,7 @@
 package modules
 
 import (
-	"blockchainETH-MongoDb/models"
+	"blockchainETH-MongoDb/core/domain"
 	"context"
 	"crypto/ecdsa"
 	"fmt"
@@ -14,7 +14,7 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-func  GetInt(key string) int {
+func GetInt(key string) int {
 	var m map[string]interface{}
 
 	value, ok := m[key]
@@ -35,8 +35,7 @@ func  GetInt(key string) int {
 	return int(real)
 }
 
-
-func GetLatestBlock(client ethclient.Client) *models.Block {
+func GetLatestBlock(client ethclient.Client) *domain.Block {
 	// We add a recover function from panics to prevent our API from crashing due to an unexpected error
 	defer func() {
 		if err := recover(); err != nil {
@@ -54,17 +53,17 @@ func GetLatestBlock(client ethclient.Client) *models.Block {
 	}
 
 	// Build the response to our model
-	_block := &models.Block{
+	_block := &domain.Block{
 		BlockNumber:       block.Number().Int64(),
 		Timestamp:         block.Time(),
 		Difficulty:        block.Difficulty().Uint64(),
 		Hash:              block.Hash().String(),
 		TransactionsCount: len(block.Transactions()),
-		Transactions:      []models.Transaction{},
+		Transactions:      []domain.Transaction{},
 	}
 
 	for _, tx := range block.Transactions() {
-		_block.Transactions = append(_block.Transactions, models.Transaction{
+		_block.Transactions = append(_block.Transactions, domain.Transaction{
 			Hash:     tx.Hash().String(),
 			Value:    tx.Value().String(),
 			Gas:      tx.Gas(),
@@ -78,7 +77,7 @@ func GetLatestBlock(client ethclient.Client) *models.Block {
 }
 
 // GetBlockByNumber returns a block by a given number
-func  GetBlockByNumber(client ethclient.Client, number string) *models.Block {
+func GetBlockByNumber(client ethclient.Client, number int64) *domain.Block {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -86,24 +85,24 @@ func  GetBlockByNumber(client ethclient.Client, number string) *models.Block {
 		}
 	}()
 
-	blockNumber := big.NewInt(int64(GetInt(number)))
+	blockNumber := big.NewInt(number)
 	block, err := client.BlockByNumber(context.Background(), blockNumber)
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_block := &models.Block{
+	_block := &domain.Block{
 		BlockNumber:       block.Number().Int64(),
 		Timestamp:         block.Time(),
 		Difficulty:        block.Difficulty().Uint64(),
 		Hash:              block.Hash().String(),
 		TransactionsCount: len(block.Transactions()),
-		Transactions:      []models.Transaction{},
+		Transactions:      []domain.Transaction{},
 	}
 
 	for _, tx := range block.Transactions() {
-		_block.Transactions = append(_block.Transactions, models.Transaction{
+		_block.Transactions = append(_block.Transactions, domain.Transaction{
 			Hash:     tx.Hash().String(),
 			Value:    tx.Value().String(),
 			Gas:      tx.Gas(),
@@ -117,7 +116,7 @@ func  GetBlockByNumber(client ethclient.Client, number string) *models.Block {
 }
 
 // GetTxByHash by a given hash
-func GetTxByHash(client ethclient.Client, hash common.Hash) *models.Transaction {
+func GetTxByHash(client ethclient.Client, hash common.Hash) *domain.Transaction {
 
 	defer func() {
 		if err := recover(); err != nil {
@@ -130,7 +129,7 @@ func GetTxByHash(client ethclient.Client, hash common.Hash) *models.Transaction 
 		fmt.Println(err)
 	}
 
-	return &models.Transaction{
+	return &domain.Transaction{
 		Hash:     tx.Hash().String(),
 		Value:    tx.Value().String(),
 		Gas:      tx.Gas(),
@@ -153,7 +152,6 @@ func GetAddressBalance(client ethclient.Client, address string) (string, error) 
 }
 
 func TransferEth(client ethclient.Client, privKey string, to string, amount int64) (string, error) {
-
 	defer func() {
 		if err := recover(); err != nil {
 			fmt.Println(err)
